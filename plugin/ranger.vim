@@ -30,19 +30,24 @@ if exists('g:ranger_choice_file')
     echom "Message from *Ranger.vim* :"
     echom "You've set the g:ranger_choice_file variable."
     echom "Please use the path for a file that does not already exist."
-    echom "Using /tmp/chosenfile for now..."
-  endif
+    echom "Using /tmp/rangervim_chosenfile for now..."
+endif
 endif
 
 if exists('g:ranger_command_override')
   let s:ranger_command = g:ranger_command_override
 else
-  let s:ranger_command = 'ranger'
+  let s:ranger_command = 'ranger --choosedir=$HOME/.rangerdir'
 endif
 
 if !exists('s:choice_file_path')
-  let s:choice_file_path = '/tmp/chosenfile'
+  let s:choice_file_path = '/tmp/rangervim_chosenfile'
 endif
+
+function! MyDelete(filepath)
+    let g:rangervim_chosenfiles = system('cat ' . a:filepath)
+    call delete(a:filepath)
+endfunction
 
 if has('nvim')
   function! OpenRangerIn(path, edit_cmd)
@@ -57,7 +62,7 @@ if has('nvim')
           for f in readfile(s:choice_file_path)
             exec self.edit_cmd . f
           endfor
-          call delete(s:choice_file_path)
+          call MyDelete(s:choice_file_path)
         endif
       endtry
     endfunction
@@ -81,7 +86,7 @@ else
       for f in readfile(s:choice_file_path)
         exec a:edit_cmd . f
       endfor
-      call delete(s:choice_file_path)
+      call MyDelete(s:choice_file_path)
     endif
     redraw!
     " reset the filetype to fix the issue that happens
